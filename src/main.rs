@@ -19,6 +19,7 @@ enum Direction {
     Down,
     Left,
     Right,
+    Nope,
 }
 
 #[derive()]
@@ -30,15 +31,6 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(p: Point, s: Rect, speed: i32) -> Self {
-        Self {
-            position: p,
-            sprite: s,
-            speed,
-            direction: Direction::Right,
-        }
-    }
-
     pub fn spawn_position(&self, canvas: &WindowCanvas) -> Result<Rect, String> {
         let (w, h) = canvas.output_size()?;
         let point = self.position + Point::new((w / 2) as i32, (h / 2) as i32);
@@ -52,16 +44,24 @@ impl Player {
 
         match self.direction {
             Left => {
+                self.speed = PLAYER_SPEED;
                 self.position = self.position.offset(-self.speed, 0);
             }
             Right => {
+                self.speed = PLAYER_SPEED;
                 self.position = self.position.offset(self.speed, 0);
             }
             Up => {
+                self.speed = PLAYER_SPEED;
                 self.position = self.position.offset(0, -self.speed);
             }
             Down => {
+                self.speed = PLAYER_SPEED;
                 self.position = self.position.offset(0, self.speed);
+            }
+
+            Nope => {
+                self.speed = 0;
             }
         }
     }
@@ -96,7 +96,12 @@ fn main() -> Result<(), String> {
     let position = Point::new(0, 0);
     let sprite = Rect::new(0, 0, 26, 36);
 
-    let mut player = Player::new(position, sprite, PLAYER_SPEED);
+    let mut player = Player {
+        position,
+        sprite,
+        direction: Direction::Nope,
+        speed: 0,
+    };
 
     'running: loop {
         for event in events.poll_iter() {
@@ -161,6 +166,7 @@ fn main() -> Result<(), String> {
                     ..
                 } => {
                     player.speed = 0;
+                    player.direction = Direction::Nope;
                 }
                 _ => {}
             }
@@ -193,5 +199,3 @@ fn render(
 
     Ok(())
 }
-
-// fn update(canvas: &mut WindowCanvas) {}
