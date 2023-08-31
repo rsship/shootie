@@ -202,7 +202,7 @@ fn render(
     canvas.clear();
 
     let player_screen_position = player.spawn_position(&canvas)?;
-    pritnln!("----------------- player ----------------------");
+    println!("----------------- player ----------------------");
     canvas.copy(texture, player.sprite, player_screen_position)?;
     canvas.present();
     Ok(())
