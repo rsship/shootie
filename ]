@@ -202,8 +202,8 @@ fn render(
     canvas.clear();
 
     let player_screen_position = player.spawn_position(&canvas)?;
-    pritnln!("----------------- player ----------------------");
-    canvas.copy(texture, player.sprite, player_screen_position)?;
+
+    canvas.copy(texture, player.sprite, Rect::new(50, 50, 100, 100))?;
     canvas.present();
     Ok(())
 }
