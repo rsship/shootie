@@ -180,7 +180,7 @@ fn main() -> Result<(), String> {
         }
 
         canvas
-            .set_logical_size(800, 8000)
+            .set_logical_size(800, 800)
             .expect("Couldn't set the logical boundries");
 
         player.update_position();
@@ -202,7 +202,6 @@ fn render(
     canvas.clear();
 
     let player_screen_position = player.spawn_position(&canvas)?;
-    println!("----------------- player ----------------------");
     canvas.copy(texture, player.sprite, player_screen_position)?;
     canvas.present();
     Ok(())
