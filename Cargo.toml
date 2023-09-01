@@ -12,3 +12,7 @@ features = ["ttf","image","gfx","mixer"]
 
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs"
+
+[dependencies]
+specs = "0.14"
+specs-derive = "0.4"
