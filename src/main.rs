@@ -1,3 +1,5 @@
+mod components;
+use components::*;
 use std::time::Duration;
 
 use sdl2::event::Event;
@@ -6,51 +8,13 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
-
 use specs::prelude::*;
-use specs_derive::Component;
 
 const WINDOW_TITLE: &str = "shooter game";
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
 const PLAYER_SPEED: i32 = 5;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-    Nope,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct Position(Point);
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct Velocity {
-    speed: i32,
-    direction: Direction,
-}
-
-#[derive(Component, Debug, Clone)]
-#[storage(VecStorage)]
-struct Sprite {
-    spritesheet: usize,
-    region: Rect,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct MovementAnimation {
-    current_frame: usize,
-    up_frames: Vec<Sprite>,
-    down_frames: Vec<Sprite>,
-    left_frames: Vec<Sprite>,
-    right_frames: Vec<Sprite>,
-}
 fn character_animation_frames(
     spritesheet: usize,
     top_left_frame: Rect,
@@ -156,34 +120,6 @@ fn main() -> Result<(), String> {
         .into_canvas()
         .build()
         .expect("couldn't build'nt the canvas");
-
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct Position(Point);
-    //
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct Velocity {
-    //     speed: i32,
-    //     direction: Direction,
-    // }
-    //
-    // #[derive(Component, Debug, Clone)]
-    // #[storage(VecStorage)]
-    // struct Sprite {
-    //     spritesheet: usize,
-    //     region: Rect,
-    // }
-    //
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct MovementAnimation {
-    //     current_frame: usize,
-    //     up_frames: Vec<Sprite>,
-    //     down_frames: Vec<Sprite>,
-    //     left_frames: Vec<Sprite>,
-    //     right_frames: Vec<Sprite>,
-    // }
 
     let texture_creator = canvas.texture_creator();
     // let texture = texture_creator
