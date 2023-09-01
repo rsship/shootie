@@ -1,4 +1,6 @@
+mod animator;
 mod components;
+mod physics;
 mod player;
 use components::*;
 use player::*;
@@ -58,6 +60,14 @@ fn main() -> Result<(), String> {
         .build()
         .expect("couldn't build'nt the canvas");
 
+    let mut dispatcher = DispatcherBuilder::new()
+        .with(physics::Physics, "Physics", &[])
+        .with(animator::Animator, "Animator", &[])
+        .build();
+
+    let mut world = World::new();
+    dispatcher.setup(&mut world.res);
+
     let texture_creator = canvas.texture_creator();
     // let texture = texture_creator
     //     .load_texture("src/assets/bardo.png")
@@ -95,7 +105,6 @@ fn main() -> Result<(), String> {
         ),
     };
 
-    let mut world = World::new();
     world.register::<Position>();
     world.register::<Velocity>();
     world.register::<Sprite>();
@@ -185,6 +194,9 @@ fn main() -> Result<(), String> {
         canvas
             .set_logical_size(800, 800)
             .expect("Couldn't set the logical boundries");
+
+        dispatcher.dispatch(&mut world.res);
+        world.maintain();
 
         player.update_position();
 
