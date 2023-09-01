@@ -1,5 +1,7 @@
 mod components;
+mod player;
 use components::*;
+use player::*;
 use std::time::Duration;
 
 use sdl2::event::Event;
@@ -36,71 +38,6 @@ fn character_animation_frames(
     }
 
     frames
-}
-
-#[derive(Debug)]
-pub struct Player {
-    position: Point,
-    sprite: Rect,
-    speed: i32,
-    direction: Direction,
-    current_frame: i32,
-}
-
-impl Player {
-    pub fn new(
-        position: Point,
-        sprite: Rect,
-        speed: Option<i32>,
-        direction: Option<Direction>,
-    ) -> Self {
-        Self {
-            position,
-            sprite,
-            speed: speed.unwrap_or(0),
-            direction: direction.unwrap_or(Direction::Nope),
-            current_frame: 0,
-        }
-    }
-    pub fn spawn_position(&self, canvas: &WindowCanvas) -> Result<Rect, String> {
-        let (w, h) = canvas.output_size()?;
-        let point = self.position + Point::new((w / 2) as i32, (h / 2) as i32);
-        let screen_position = Rect::from_center(point, self.sprite.width(), self.sprite.height());
-
-        Ok(screen_position)
-    }
-
-    pub fn update_position(&mut self) {
-        use self::Direction::*;
-
-        match self.direction {
-            Left => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(-self.speed, 0);
-            }
-            Right => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(self.speed, 0);
-            }
-            Up => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(0, -self.speed);
-            }
-            Down => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(0, self.speed);
-            }
-
-            Nope => {
-                self.speed = 0;
-                self.direction = Direction::Nope;
-            }
-        }
-
-        if self.speed != 0 {
-            self.current_frame = (self.current_frame + 1) % 3;
-        }
-    }
 }
 
 fn main() -> Result<(), String> {
