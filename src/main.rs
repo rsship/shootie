@@ -219,6 +219,7 @@ fn main() -> Result<(), String> {
         dispatcher.dispatch(&mut world);
         world.maintain();
 
+
         player.update_position();
         renderer::render(
             &mut canvas,
