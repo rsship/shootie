@@ -2,6 +2,10 @@ use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 use specs_derive::Component;
 
+#[derive(Component, Debug, Default)]
+#[storage(NullStorage)]
+pub struct KeyboardControlled;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Up,
@@ -37,4 +41,15 @@ pub struct MovementAnimation {
     pub down_frames: Vec<Sprite>,
     pub left_frames: Vec<Sprite>,
     pub right_frames: Vec<Sprite>,
+}
+
+pub fn direction_sprite_row(direction: Direction) -> i32 {
+    use self::Direction::*;
+    match direction {
+        Up => 3,
+        Down => 0,
+        Left => 1,
+        Right => 2,
+        Nope => 0,
+    }
 }
