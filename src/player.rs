@@ -5,7 +5,13 @@ use sdl2::{
 
 use crate::components::Direction;
 
-const PLAYER_SPEED: i32 = 5;
+pub const PLAYER_SPEED: i32 = 5;
+
+#[derive(Debug)]
+pub enum MovementCommand {
+    Stop,
+    Move(Direction),
+}
 
 #[derive(Debug)]
 pub struct Player {

@@ -16,10 +16,10 @@ impl<'a> System<'a> for Physics {
                     pos.0 = pos.0.offset(vel.speed, 0);
                 }
                 Down => {
-                    pos.0 = pos.0.offset(0, -vel.speed);
+                    pos.0 = pos.0.offset(0, vel.speed);
                 }
                 Up => {
-                    pos.0 = pos.0.offset(0, vel.speed);
+                    pos.0 = pos.0.offset(0, -vel.speed);
                 }
                 Nope => {}
             }
