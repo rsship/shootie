@@ -1,3 +1,4 @@
+mod ai;
 mod animator;
 mod components;
 mod keyboard;
@@ -79,8 +80,9 @@ fn main() -> Result<(), String> {
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(keyboard::Keyboard, "Keyboard", &[])
-        .with(physics::Physics, "Physics", &["Keyboard"])
-        .with(animator::Animator, "Animator", &["Keyboard"])
+        .with(ai::AI, "AI", &[])
+        .with(physics::Physics, "Physics", &["Keyboard", "AI"])
+        .with(animator::Animator, "Animator", &["Keyboard", "AI"])
         .build();
 
     let mut world = World::new();

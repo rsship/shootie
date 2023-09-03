@@ -6,6 +6,10 @@ use specs_derive::Component;
 #[storage(NullStorage)]
 pub struct KeyboardControlled;
 
+#[derive(Component, Debug, Default)]
+#[storage(NullStorage)]
+pub struct Enemy;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Up,
