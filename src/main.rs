@@ -1,3 +1,14 @@
+mod animator;
+mod components;
+mod keyboard;
+mod physics;
+mod player;
+mod renderer;
+
+use components::*;
+use player::*;
+use sdl2::render::{Texture, TextureCreator};
+use sdl2::video::WindowContext;
 use std::time::Duration;
 
 use sdl2::event::Event;
@@ -5,52 +16,12 @@ use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
-
 use specs::prelude::*;
-use specs_derive::Component;
 
-const WINDOW_TITLE: &str = "shooter game";
+const WINDOW_TITLE: &str = "shootie";
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
-const PLAYER_SPEED: i32 = 5;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-    Nope,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct Position(Point);
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct Velocity {
-    speed: i32,
-    direction: Direction,
-}
-
-#[derive(Component, Debug, Clone)]
-#[storage(VecStorage)]
-struct Sprite {
-    spritesheet: usize,
-    region: Rect,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-struct MovementAnimation {
-    current_frame: usize,
-    up_frames: Vec<Sprite>,
-    down_frames: Vec<Sprite>,
-    left_frames: Vec<Sprite>,
-    right_frames: Vec<Sprite>,
-}
 fn character_animation_frames(
     spritesheet: usize,
     top_left_frame: Rect,
@@ -74,67 +45,16 @@ fn character_animation_frames(
     frames
 }
 
-#[derive(Debug)]
-pub struct Player {
-    position: Point,
-    sprite: Rect,
-    speed: i32,
-    direction: Direction,
-    current_frame: i32,
-}
-
-impl Player {
-    pub fn new(
-        position: Point,
-        sprite: Rect,
-        speed: Option<i32>,
-        direction: Option<Direction>,
-    ) -> Self {
-        Self {
-            position,
-            sprite,
-            speed: speed.unwrap_or(0),
-            direction: direction.unwrap_or(Direction::Nope),
-            current_frame: 0,
-        }
-    }
-    pub fn spawn_position(&self, canvas: &WindowCanvas) -> Result<Rect, String> {
-        let (w, h) = canvas.output_size()?;
-        let point = self.position + Point::new((w / 2) as i32, (h / 2) as i32);
-        let screen_position = Rect::from_center(point, self.sprite.width(), self.sprite.height());
-
-        Ok(screen_position)
-    }
-
-    pub fn update_position(&mut self) {
-        use self::Direction::*;
-
-        match self.direction {
-            Left => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(-self.speed, 0);
-            }
-            Right => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(self.speed, 0);
-            }
-            Up => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(0, -self.speed);
-            }
-            Down => {
-                self.speed = PLAYER_SPEED;
-                self.position = self.position.offset(0, self.speed);
-            }
-
-            Nope => {
-                self.speed = 0;
-                self.direction = Direction::Nope;
-            }
-        }
-
-        if self.speed != 0 {
-            self.current_frame = (self.current_frame + 1) % 3;
+fn load_texture<'a>(
+    texture_creator: &'a TextureCreator<WindowContext>,
+    textures: &mut Vec<Texture<'a>>,
+    file_path: String,
+) {
+    match texture_creator.load_texture(file_path) {
+        Ok(texture) => textures.push(texture),
+        Err(err) => {
+            eprintln!("{}", err);
+            return;
         }
     }
 }
@@ -157,39 +77,23 @@ fn main() -> Result<(), String> {
         .build()
         .expect("couldn't build'nt the canvas");
 
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct Position(Point);
-    //
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct Velocity {
-    //     speed: i32,
-    //     direction: Direction,
-    // }
-    //
-    // #[derive(Component, Debug, Clone)]
-    // #[storage(VecStorage)]
-    // struct Sprite {
-    //     spritesheet: usize,
-    //     region: Rect,
-    // }
-    //
-    // #[derive(Component, Debug)]
-    // #[storage(VecStorage)]
-    // struct MovementAnimation {
-    //     current_frame: usize,
-    //     up_frames: Vec<Sprite>,
-    //     down_frames: Vec<Sprite>,
-    //     left_frames: Vec<Sprite>,
-    //     right_frames: Vec<Sprite>,
-    // }
+    let mut dispatcher = DispatcherBuilder::new()
+        .with(keyboard::Keyboard, "Keyboard", &[])
+        .with(physics::Physics, "Physics", &["Keyboard"])
+        .with(animator::Animator, "Animator", &["Keyboard"])
+        .build();
+
+    let mut world = World::new();
+    dispatcher.setup(&mut world);
+    renderer::SystemData::setup(&mut world);
+
+    let movement_command: Option<MovementCommand> = None;
+    world.insert(movement_command);
 
     let texture_creator = canvas.texture_creator();
-    // let texture = texture_creator
-    //     .load_texture("src/assets/bardo.png")
-    //     .expect("couldn't load the texTure");
-    let textures = [texture_creator.load_texture("src/assets/bardo.png")];
+    let mut textures: Vec<Texture> = Vec::new();
+    let file_path = String::from("src/assets/bardo.png");
+    load_texture(&texture_creator, &mut textures, file_path);
 
     let mut events = sdl_context.event_pump()?;
 
@@ -222,11 +126,11 @@ fn main() -> Result<(), String> {
         ),
     };
 
-    let mut world = World::new();
     world.register::<Position>();
     world.register::<Velocity>();
     world.register::<Sprite>();
     world.register::<MovementAnimation>();
+    world.register::<KeyboardControlled>();
 
     world
         .create_entity()
@@ -237,9 +141,11 @@ fn main() -> Result<(), String> {
         })
         .with(player_animation.right_frames[0].clone())
         .with(player_animation)
+        .with(KeyboardControlled)
         .build();
 
     'running: loop {
+        let mut movement_command = None;
         for event in events.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -255,32 +161,28 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => {
-                    player.speed = PLAYER_SPEED;
-                    player.direction = Direction::Left;
+                    movement_command = Some(MovementCommand::Move(Direction::Left));
                 }
                 Event::KeyDown {
                     keycode: Some(Keycode::Right),
                     repeat: false,
                     ..
                 } => {
-                    player.speed = PLAYER_SPEED;
-                    player.direction = Direction::Right;
+                    movement_command = Some(MovementCommand::Move(Direction::Right));
                 }
                 Event::KeyDown {
                     keycode: Some(Keycode::Up),
                     repeat: false,
                     ..
                 } => {
-                    player.speed = PLAYER_SPEED;
-                    player.direction = Direction::Up;
+                    movement_command = Some(MovementCommand::Move(Direction::Up));
                 }
                 Event::KeyDown {
                     keycode: Some(Keycode::Down),
                     repeat: false,
                     ..
                 } => {
-                    player.speed = PLAYER_SPEED;
-                    player.direction = Direction::Down;
+                    movement_command = Some(MovementCommand::Move(Direction::Down));
                 }
                 Event::KeyUp {
                     keycode: Some(Keycode::Left),
@@ -302,66 +204,31 @@ fn main() -> Result<(), String> {
                     repeat: false,
                     ..
                 } => {
-                    player.speed = 0;
-                    player.direction = Direction::Nope;
+                    movement_command = Some(MovementCommand::Stop);
                 }
                 _ => {}
             }
         }
 
+        *world.write_resource() = movement_command;
+
         canvas
             .set_logical_size(800, 800)
             .expect("Couldn't set the logical boundries");
 
-        player.update_position();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
 
-        for texture in &textures {
-            let texture = match texture {
-                Err(err) => {
-                    eprintln!("An error: {} skipped", err);
-                    continue;
-                }
-                Ok(x) => x,
-            };
-            render(&mut canvas, Color::RGB(128, 255, 255), &texture, &player)?;
-        }
+        player.update_position();
+        let _ = renderer::render(
+            &mut canvas,
+            Color::RGB(1, 17, 20),
+            &textures,
+            world.system_data(),
+        );
 
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())
-}
-
-fn render(
-    canvas: &mut WindowCanvas,
-    color: Color,
-    texture: &Texture,
-    player: &Player,
-) -> Result<(), String> {
-    canvas.set_draw_color(color);
-    canvas.clear();
-
-    let (frame_width, frame_height) = player.sprite.size();
-    let current_frame = Rect::new(
-        player.sprite.x() + frame_width as i32 * player.current_frame,
-        player.sprite.y() + frame_height as i32 * direction_sprite_row(player.direction),
-        frame_width,
-        frame_height,
-    );
-
-    let player_screen_position = player.spawn_position(&canvas)?;
-    canvas.copy(texture, current_frame, player_screen_position)?;
-    canvas.present();
-    Ok(())
-}
-
-fn direction_sprite_row(direction: Direction) -> i32 {
-    use self::Direction::*;
-    match direction {
-        Up => 3,
-        Down => 0,
-        Left => 1,
-        Right => 2,
-        Nope => 0,
-    }
 }
