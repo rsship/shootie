@@ -219,9 +219,8 @@ fn main() -> Result<(), String> {
         dispatcher.dispatch(&mut world);
         world.maintain();
 
-
         player.update_position();
-        renderer::render(
+        let _ = renderer::render(
             &mut canvas,
             Color::RGB(1, 17, 20),
             &textures,

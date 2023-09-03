@@ -26,7 +26,7 @@ pub fn render(
             current_frame.height(),
         );
 
-        canvas.copy(&textures[sprite.spritesheet], current_frame, screen_rect);
+        let _ = canvas.copy(&textures[sprite.spritesheet], current_frame, screen_rect);
     }
 
     canvas.present();
