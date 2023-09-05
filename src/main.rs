@@ -5,15 +5,14 @@ mod keyboard;
 mod physics;
 mod player;
 mod renderer;
+mod textures;
 
 use components::*;
 use player::*;
-use sdl2::render::{Texture, TextureCreator};
-use sdl2::video::WindowContext;
 use std::time::Duration;
 
 use sdl2::event::Event;
-use sdl2::image::{self, InitFlag, LoadTexture};
+use sdl2::image::{self, InitFlag};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
@@ -46,19 +45,6 @@ fn character_animation_frames(
     frames
 }
 
-fn load_texture<'a>(
-    texture_creator: &'a TextureCreator<WindowContext>,
-    textures: &mut Vec<Texture<'a>>,
-    file_path: String,
-) {
-    match texture_creator.load_texture(file_path) {
-        Ok(texture) => textures.push(texture),
-        Err(err) => {
-            eprintln!("{}", err);
-            return;
-        }
-    }
-}
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -91,11 +77,10 @@ fn main() -> Result<(), String> {
 
     let movement_command: Option<MovementCommand> = None;
     world.insert(movement_command);
-
     let texture_creator = canvas.texture_creator();
-    let mut textures: Vec<Texture> = Vec::new();
-    let file_path = String::from("src/assets/bardo.png");
-    load_texture(&texture_creator, &mut textures, file_path);
+    let mut texture_loader = textures::TextureLoader::new(&texture_creator);
+
+    texture_loader.add_texture("src/assets/bardo.png");
 
     let mut events = sdl_context.event_pump()?;
 
@@ -225,7 +210,7 @@ fn main() -> Result<(), String> {
         let _ = renderer::render(
             &mut canvas,
             Color::RGB(1, 17, 20),
-            &textures,
+            &texture_loader.textures,
             world.system_data(),
         );
 
