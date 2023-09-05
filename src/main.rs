@@ -78,9 +78,11 @@ fn main() -> Result<(), String> {
     let movement_command: Option<MovementCommand> = None;
     world.insert(movement_command);
     let texture_creator = canvas.texture_creator();
-    let mut texture_loader = textures::TextureLoader::new(&texture_creator);
+    let mut player_texture_loader = textures::TextureLoader::new(&texture_creator);
+    let mut enemy_texture_loader = textures::TextureLoader::new(&texture_creator);
 
-    texture_loader.add_texture("src/assets/bardo.png");
+    player_texture_loader.add_texture("src/assets/bardo.png");
+    enemy_texture_loader.add_texture("src/assets/reaper.png");
 
     let mut events = sdl_context.event_pump()?;
 
@@ -118,6 +120,7 @@ fn main() -> Result<(), String> {
     world.register::<Sprite>();
     world.register::<MovementAnimation>();
     world.register::<KeyboardControlled>();
+    world.register::<Enemy>();
 
     world
         .create_entity()
@@ -129,6 +132,7 @@ fn main() -> Result<(), String> {
         .with(player_animation.right_frames[0].clone())
         .with(player_animation)
         .with(KeyboardControlled)
+        .with(Enemy)
         .build();
 
     'running: loop {
@@ -207,12 +211,21 @@ fn main() -> Result<(), String> {
         world.maintain();
 
         player.update_position();
-        let _ = renderer::render(
+        renderer::render(
             &mut canvas,
             Color::RGB(1, 17, 20),
-            &texture_loader.textures,
+            &player_texture_loader.textures,
             world.system_data(),
-        );
+        )?;
+
+
+        renderer::render(
+            &mut canvas,
+            Color::RGB(1, 17, 20),
+            &enemy_texture_loader.textures,
+            world.system_data(),
+        )?;
+
 
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }

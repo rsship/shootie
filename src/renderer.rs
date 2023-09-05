@@ -26,10 +26,14 @@ pub fn render(
             current_frame.height(),
         );
 
-        let _ = canvas.copy(&textures[sprite.spritesheet], current_frame, screen_rect);
+         canvas.copy(&textures[sprite.spritesheet], current_frame, screen_rect)?;
     }
 
     canvas.present();
 
     Ok(())
 }
+
+
+
+
